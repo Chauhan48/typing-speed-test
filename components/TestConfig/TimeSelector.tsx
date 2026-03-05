@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { useTimeStore } from '@/stores/timeStore';
 
 const TimeSelector: React.FC = () => {
   const timeOptions: number[] = [30, 60, 120]; // Typed array
-  const [selectedTime, setSelectedTime] = useState<number>(60);
-
+  const { selectedTime, setSelectedTime } = useTimeStore();
+console.log(selectedTime)
   return (
     <div className="flex flex-col gap-2">
       <label className="text-sm font-medium text-gray-700">Time Limit</label>
