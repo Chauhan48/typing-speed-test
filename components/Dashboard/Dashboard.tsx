@@ -1,4 +1,5 @@
 import ModeSelector from "../TestConfig/ModeSelector"
+import StartButton from "../TestConfig/StartButton"
 import TimeSelector from "../TestConfig/TimeSelector"
 
 const Dashboard = () => {
@@ -10,6 +11,7 @@ const Dashboard = () => {
             Configure your test
             <TimeSelector />
             <ModeSelector />
+            <StartButton />
         </div>
     </div>
   )
