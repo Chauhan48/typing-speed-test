@@ -12,21 +12,20 @@ const TimeSelector = ({ selectedTime, onTimeChange }: TimeSelectorProps) => {
 
   return (
     <div>
-      <label className="text-sm font-medium text-gray-700">
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
         Duration
       </label>
-
-      <div className="flex gap-2 mt-2">
+      <div className="flex gap-2">
         {times.map((time) => (
           <button
             key={time}
             type="button"
             onClick={() => onTimeChange(time)}
-            className={`px-4 py-2 text-sm font-medium transition-all duration-200 flex-1 rounded-lg border shadow-sm
+            className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg border transition-all duration-200
               ${
                 selectedTime === time
-                  ? 'bg-blue-500 text-white border-blue-500 shadow-md'
-                  : 'bg-white text-gray-700 border-gray-200 hover:text-gray-900 hover:bg-gray-50'
+                  ? 'bg-blue-600 text-white border-blue-600 dark:bg-blue-500 dark:border-blue-500'
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700'
               }
             `}
           >
