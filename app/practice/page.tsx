@@ -1,5 +1,9 @@
+import Timer from "@/components/TypingTest/Timer";
+
 export default function Practice() {
     return (
-        <h1>Test page</h1>
+        <div>
+            <Timer />
+        </div>
     )
 }
