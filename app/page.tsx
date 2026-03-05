@@ -2,7 +2,7 @@ import Dashboard from "@/components/Dashboard/Dashboard";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-gray-900">
+    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans ">
       <Dashboard />
     </div>
   );
