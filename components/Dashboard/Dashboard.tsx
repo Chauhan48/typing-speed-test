@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import ModeSelector from '../TestConfig/ModeSelector';
 import StartButton from '../TestConfig/StartButton';
 import TimeSelector from '../TestConfig/TimeSelector';
-import { useTestStore, TestMode, TestDuration } from '@/stores/testStore';
+import { useTestStore, parseCompletedAt, TestMode, TestDuration } from '@/stores/testStore';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 
 const Dashboard = () => {
@@ -71,7 +71,7 @@ const Dashboard = () => {
             {testResult ? (
               <div className="space-y-4">
                 <div className="text-center text-sm text-gray-500 dark:text-gray-400">
-                  Completed on {testResult.completedAt.toLocaleDateString()} at {testResult.completedAt.toLocaleTimeString()}
+                  Completed on {parseCompletedAt(testResult.completedAt)?.toLocaleDateString()} at {parseCompletedAt(testResult.completedAt)?.toLocaleTimeString()}
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">

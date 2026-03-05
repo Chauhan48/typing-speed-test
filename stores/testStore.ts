@@ -16,7 +16,7 @@ export interface TestResult {
   totalCharacters: number;
   correctCharacters: number;
   testDuration: number;
-  completedAt: Date;
+  completedAt: string; // Store as ISO string
 }
 
 interface TestState {
@@ -67,3 +67,9 @@ export const useTestStore = create<TestState>()(
     }
   )
 );
+
+// Helper function to convert ISO string back to Date
+export const parseCompletedAt = (isoString: string | null): Date | null => {
+  if (!isoString) return null;
+  return new Date(isoString);
+};

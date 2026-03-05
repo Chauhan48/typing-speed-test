@@ -20,7 +20,7 @@ const TypingBox = () => {
   
   const fullText = "Lorem ipsum dolor sit amet consectetur adipisicing elit. Ad consequatur a numquam eveniet totam quisquam illum officiis culpa, nisi fuga eos magnam nulla debitis! Atque cupiditate ut ipsa cum explicabo vitae optio sit beatae aut enim dolore nobis nemo quas doloremque, quos assumenda ducimus sequi ea harum? Aut sapiente voluptas dicta, fuga aperiam vel eligendi rem eaque, facere esse nam. Tempore eveniet incidunt illum? Beatae error autem aliquam maiores, ut a qui optio fuga facilis et numquam commodi, possimus voluptates officia asperiores ab, magnam rem tempora eligendi esse in minus! Lorem ipsum dolor sit amet consectetur adipisicing elit Illo explicabo dolorem quisquam iure dolor voluptas aperiam porro nostrum similique distinctio eum pariatur veniam quidem provident minima Facere blanditiis nobis ex modi sequi sint ab";
 
-  const words = fullText.split(/\s+/).filter(Boolean);
+  const words = fullText.split(/\s+/).filter(Boolean).map(word => word.replace(/[^\w\s]/g, ''));
 
   const lines: string[][] = useMemo(() => {
     const linesArray: string[][] = [];
@@ -106,7 +106,7 @@ const TypingBox = () => {
       totalCharacters: results.totalCharacters,
       correctCharacters: results.correctCharacters,
       testDuration: results.testDuration,
-      completedAt: new Date(),
+      completedAt: new Date().toISOString(), // Store as ISO string
     });
   }, [calculateResults, setTestResult, setIsTestActive, setIsTestActiveLocal]);
 
