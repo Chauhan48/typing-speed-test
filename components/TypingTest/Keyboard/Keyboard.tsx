@@ -1,24 +1,52 @@
+'use client';
 
-const Keyboard = () => {
+import { useState, useEffect } from 'react';
+import KeyboardRow from './KeyboardRow';
 
-    const keys: (number[] | string[])[] = [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+export default function Keyboard() {
+  const rows: (number[] | string[])[] = [
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
     ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
     ["a", "s", "d", "f", "g", "h", "j", "k", "l"],
-    ["z", "x", "c", "v", "b", "n", "m"]]
+    ["z", "x", "c", "v", "b", "n", "m"],
+  ];
 
-    return (
-        <div>
-            {keys.map((row, index) => (
-                <div key={index} className="flex justify-center mb-2">
-                    {row.map((key) => (
-                        <div key={key} className="w-10 h-10 bg-gray-300 rounded flex items-center justify-center mx-1">
-                            {key}
-                        </div>
-                    ))}
-                </div>
-            ))}
-        </div>
-    )
+  const [highlightedKey, setHighlightedKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const key = e.key.toLowerCase();
+      setHighlightedKey(key);
+
+      if (timer !== null) {
+        clearTimeout(timer);
+      }
+
+      timer = setTimeout(() => {
+        setHighlightedKey(null);
+      }, 1000);
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      if (timer !== null) {
+        clearTimeout(timer);
+      }
+    };
+  }, []);
+
+  return (
+    <div className="mx-auto max-w-md">
+      {rows.map((row, rowIndex) => (
+        <KeyboardRow
+          key={rowIndex}
+          row={row}
+          highlightedKey={highlightedKey}
+        />
+      ))}
+    </div>
+  );
 }
-
-export default Keyboard
