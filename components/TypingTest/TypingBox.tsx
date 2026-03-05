@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import Keyboard from './Keyboard/Keyboard';
 import TextDisplay from './TextDisplay';
+import { useTestStore } from '@/stores/testStore';
 
 interface TestResults {
   wpm: number;
@@ -13,8 +15,10 @@ interface TestResults {
 }
 
 const TypingBox = () => {
-  const fullText =
-    "Lorem ipsum dolor sit amet consectetur adipisicing elit Illo explicabo dolorem quisquam iure dolor voluptas aperiam porro nostrum similique distinctio eum pariatur veniam quidem provident minima Facere blanditiis nobis ex modi sequi sint ab";
+  const router = useRouter();
+  const { testConfig, setTestResult, setIsTestActive } = useTestStore();
+  
+  const fullText = "Lorem ipsum dolor sit amet consectetur adipisicing elit. Ad consequatur a numquam eveniet totam quisquam illum officiis culpa, nisi fuga eos magnam nulla debitis! Atque cupiditate ut ipsa cum explicabo vitae optio sit beatae aut enim dolore nobis nemo quas doloremque, quos assumenda ducimus sequi ea harum? Aut sapiente voluptas dicta, fuga aperiam vel eligendi rem eaque, facere esse nam. Tempore eveniet incidunt illum? Beatae error autem aliquam maiores, ut a qui optio fuga facilis et numquam commodi, possimus voluptates officia asperiores ab, magnam rem tempora eligendi esse in minus! Lorem ipsum dolor sit amet consectetur adipisicing elit Illo explicabo dolorem quisquam iure dolor voluptas aperiam porro nostrum similique distinctio eum pariatur veniam quidem provident minima Facere blanditiis nobis ex modi sequi sint ab";
 
   const words = fullText.split(/\s+/).filter(Boolean);
 
@@ -27,9 +31,8 @@ const TypingBox = () => {
   }, [words]);
 
   // Test state
-  const [isTestActive, setIsTestActive] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(30);
-  const [selectedTime, setSelectedTime] = useState(30);
+  const [isTestActive, setIsTestActiveLocal] = useState(false);
+  const [timeLeft, setTimeLeft] = useState<number>(testConfig?.duration || 30);
 
   // Typing state
   const [currentLineIndex, setCurrentLineIndex] = useState(0);
@@ -66,8 +69,8 @@ const TypingBox = () => {
   const targetWord = currentLine[currentWordIndexInLine];
 
   // Calculate test results
-  const calculateResults = useCallback(() => {
-    const testDurationInMinutes = selectedTime / 60;
+  const calculateResults = useCallback((): TestResults => {
+    const testDurationInMinutes = (testConfig?.duration || 30) / 60;
     const wpm = totalCharactersTyped > 0 
       ? (correctCharactersTyped / 5) / testDurationInMinutes 
       : 0;
@@ -77,16 +80,17 @@ const TypingBox = () => {
       : 0;
 
     return {
-      wpm: Math.round(wpm * 10) / 10, // Round to 1 decimal place
-      accuracy: Math.round(accuracy * 10) / 10, // Round to 1 decimal place
+      wpm: Math.round(wpm * 10) / 10,
+      accuracy: Math.round(accuracy * 10) / 10,
       totalCharacters: totalCharactersTyped,
       correctCharacters: correctCharactersTyped,
-      testDuration: selectedTime
+      testDuration: testConfig?.duration || 30
     };
-  }, [totalCharactersTyped, correctCharactersTyped, selectedTime]);
+  }, [totalCharactersTyped, correctCharactersTyped, testConfig?.duration]);
 
   // End test and calculate results
   const endTest = useCallback(() => {
+    setIsTestActiveLocal(false);
     setIsTestActive(false);
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -94,12 +98,23 @@ const TypingBox = () => {
     }
     const results = calculateResults();
     setTestResults(results);
-  }, [calculateResults]);
+    
+    // Save results to Zustand store
+    setTestResult({
+      wpm: results.wpm,
+      accuracy: results.accuracy,
+      totalCharacters: results.totalCharacters,
+      correctCharacters: results.correctCharacters,
+      testDuration: results.testDuration,
+      completedAt: new Date(),
+    });
+  }, [calculateResults, setTestResult, setIsTestActive, setIsTestActiveLocal]);
 
   // Start test
   const startTest = useCallback(() => {
+    setIsTestActiveLocal(true);
     setIsTestActive(true);
-    setTimeLeft(selectedTime);
+    setTimeLeft(testConfig?.duration || 30);
     setTestResults(null);
     setCurrentLineIndex(0);
     setCurrentWordIndexInLine(0);
@@ -107,7 +122,7 @@ const TypingBox = () => {
     setWrongChars([]);
     setTotalCharactersTyped(0);
     setCorrectCharactersTyped(0);
-  }, [selectedTime]);
+  }, [testConfig?.duration, setIsTestActive, setIsTestActiveLocal]);
 
   // Timer effect
   useEffect(() => {
@@ -136,12 +151,14 @@ const TypingBox = () => {
     };
   }, [isTestActive, timeLeft, endTest]);
 
+  // Handle keydown events
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       // Don't allow typing if test is not active or results are shown
       if (!isTestActive || testResults) return;
 
       const key = e.key;
+      const currentTypedChars = typedCharsRef.current;
 
       if (!targetWord) return;
 
@@ -159,8 +176,6 @@ const TypingBox = () => {
       // SPACE → move to next word
       if (key === ' ') {
         // Use ref to get the latest typedChars value
-        const currentTypedChars = typedCharsRef.current;
-        
         if (currentTypedChars.toLowerCase() === targetWord.toLowerCase()) {
           // Word is correct, move to next word
           setCurrentWordIndexInLine((prevWordIndex) => {
@@ -187,18 +202,20 @@ const TypingBox = () => {
       if (!/^[a-z0-9]$/i.test(key)) return;
 
       const lowerKey = key.toLowerCase();
-      const proposed = typedCharsRef.current + lowerKey;
-
-      // Track total characters typed (excluding control keys)
-      setTotalCharactersTyped((prev) => prev + 1);
+      const proposed = currentTypedChars + lowerKey;
 
       if (targetWord.toLowerCase().startsWith(proposed)) {
         setTypedChars(proposed);
         setWrongChars([]);
-        // Track correct characters
-        setCorrectCharactersTyped((prev) => prev + 1);
+        
+        // Update metrics
+        setTotalCharactersTyped((prev) => prev + 1);
+        if (proposed.length === targetWord.length) {
+          setCorrectCharactersTyped((prev) => prev + 1);
+        }
       } else {
         setWrongChars([lowerKey]);
+        setTotalCharactersTyped((prev) => prev + 1);
       }
     },
     [targetWord, currentLine, currentLineIndex, lines.length, isTestActive, testResults]
@@ -209,69 +226,62 @@ const TypingBox = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
+  // Auto-start test when component mounts if we have config
+  useEffect(() => {
+    if (testConfig && !isTestActive && !testResults) {
+      const timer = setTimeout(() => {
+        startTest();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [testConfig, isTestActive, testResults, startTest]);
+
   return (
     <div className="mx-auto max-w-4xl space-y-6">
-      {/* Timer and Controls */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          {!isTestActive && !testResults && (
-            <div className="flex items-center space-x-2">
-              <select
-                value={selectedTime}
-                onChange={(e) => setSelectedTime(Number(e.target.value))}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value={15}>15s</option>
-                <option value={30}>30s</option>
-                <option value={60}>60s</option>
-              </select>
-              <button
-                onClick={startTest}
-                className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-              >
-                Start Test
-              </button>
-            </div>
-          )}
-          
-          {isTestActive && (
-            <div className="text-4xl font-mono font-bold text-white bg-red-500 px-8 py-4 rounded-2xl shadow-2xl">
-              {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
-            </div>
-          )}
+      {/* Timer Display */}
+      {isTestActive && (
+        <div className="text-center mb-6">
+          <div className="text-4xl font-mono font-bold text-white bg-red-500 px-8 py-4 rounded-2xl shadow-2xl inline-block dark:bg-red-600">
+            {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+          </div>
         </div>
-
-        {testResults && (
-          <button
-            onClick={startTest}
-            className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-          >
-            Try Again
-          </button>
-        )}
-      </div>
+      )}
 
       {/* Results Display */}
       {testResults && (
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Test Results</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-blue-50 rounded-lg p-4">
-              <div className="text-3xl font-bold text-blue-600">{testResults.wpm}</div>
-              <div className="text-sm text-gray-600">WPM</div>
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 dark:bg-gray-900 dark:border-gray-800">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4 dark:text-gray-100">Test Results</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div className="bg-blue-50 rounded-lg p-4 dark:bg-blue-900/20 dark:border-blue-800 border border-blue-200">
+              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{testResults.wpm}</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">WPM</div>
             </div>
-            <div className="bg-green-50 rounded-lg p-4">
-              <div className="text-3xl font-bold text-green-600">{testResults.accuracy}%</div>
-              <div className="text-sm text-gray-600">Accuracy</div>
+            <div className="bg-green-50 rounded-lg p-4 dark:bg-green-900/20 dark:border-green-800 border border-green-200">
+              <div className="text-3xl font-bold text-green-600 dark:text-green-400">{testResults.accuracy}%</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Accuracy</div>
             </div>
-            <div className="bg-purple-50 rounded-lg p-4">
-              <div className="text-3xl font-bold text-purple-600">{testResults.totalCharacters}</div>
-              <div className="text-sm text-gray-600">Total Chars</div>
+            <div className="bg-purple-50 rounded-lg p-4 dark:bg-purple-900/20 dark:border-purple-800 border border-purple-200">
+              <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">{testResults.totalCharacters}</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Total Chars</div>
             </div>
-            <div className="bg-orange-50 rounded-lg p-4">
-              <div className="text-3xl font-bold text-orange-600">{testResults.correctCharacters}</div>
-              <div className="text-sm text-gray-600">Correct Chars</div>
+            <div className="bg-orange-50 rounded-lg p-4 dark:bg-orange-900/20 dark:border-orange-800 border border-orange-200">
+              <div className="text-3xl font-bold text-orange-600 dark:text-orange-400">{testResults.correctCharacters}</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Correct Chars</div>
             </div>
+          </div>
+          <div className="flex gap-4 justify-center">
+            <button
+              onClick={startTest}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors dark:bg-blue-500 dark:hover:bg-blue-600"
+            >
+              Try Again
+            </button>
+            <button
+              onClick={() => router.push('/')}
+              className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors dark:bg-gray-700 dark:hover:bg-gray-600"
+            >
+              Go to Dashboard
+            </button>
           </div>
         </div>
       )}

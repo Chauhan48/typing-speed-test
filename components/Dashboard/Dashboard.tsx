@@ -63,26 +63,33 @@ const Dashboard = () => {
         {/* Results Display */}
         <Card variant="elevated">
           <CardHeader>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Your Progress</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+              {testResult ? 'Most Recent Result' : 'Your Progress'}
+            </h2>
           </CardHeader>
           <CardContent>
             {testResult ? (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
-                  <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{testResult.wpm}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">WPM</div>
+              <div className="space-y-4">
+                <div className="text-center text-sm text-gray-500 dark:text-gray-400">
+                  Completed on {testResult.completedAt.toLocaleDateString()} at {testResult.completedAt.toLocaleTimeString()}
                 </div>
-                <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
-                  <div className="text-3xl font-bold text-green-600 dark:text-green-400">{testResult.accuracy}%</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Accuracy</div>
-                </div>
-                <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
-                  <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">{testResult.totalCharacters}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Total Chars</div>
-                </div>
-                <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4 border border-orange-200 dark:border-orange-800">
-                  <div className="text-3xl font-bold text-orange-600 dark:text-orange-400">{testResult.correctCharacters}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Correct Chars</div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+                    <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{testResult.wpm}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">WPM</div>
+                  </div>
+                  <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
+                    <div className="text-3xl font-bold text-green-600 dark:text-green-400">{testResult.accuracy}%</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Accuracy</div>
+                  </div>
+                  <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
+                    <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">{testResult.totalCharacters}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Total Chars</div>
+                  </div>
+                  <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4 border border-orange-200 dark:border-orange-800">
+                    <div className="text-3xl font-bold text-orange-600 dark:text-orange-400">{testResult.correctCharacters}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Correct Chars</div>
+                  </div>
                 </div>
               </div>
             ) : (
