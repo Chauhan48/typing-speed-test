@@ -33,6 +33,7 @@ const TypingBox = () => {
   // Test state
   const [isTestActive, setIsTestActiveLocal] = useState(false);
   const [timeLeft, setTimeLeft] = useState<number>(testConfig?.duration || 30);
+  const [isFinished, setIsFinished] = useState(false);
 
   // Typing state
   const [currentLineIndex, setCurrentLineIndex] = useState(0);
@@ -88,32 +89,39 @@ const TypingBox = () => {
     };
   }, [totalCharactersTyped, correctCharactersTyped, testConfig?.duration]);
 
-  // End test and calculate results
-  const endTest = useCallback(() => {
-    setIsTestActiveLocal(false);
-    setIsTestActive(false);
+  // Finish test - called when timer hits 0
+  const finishTest = useCallback(() => {
+    // Stop timer
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
+    
+    // Calculate results
     const results = calculateResults();
+    
+    // Set local states
+    setIsTestActiveLocal(false);
+    setIsTestActive(false);
+    setIsFinished(true);
     setTestResults(results);
     
-    // Save results to Zustand store
+    // Save to Zustand store
     setTestResult({
       wpm: results.wpm,
       accuracy: results.accuracy,
       totalCharacters: results.totalCharacters,
       correctCharacters: results.correctCharacters,
       testDuration: results.testDuration,
-      completedAt: new Date().toISOString(), // Store as ISO string
+      completedAt: new Date().toISOString(),
     });
-  }, [calculateResults, setTestResult, setIsTestActive, setIsTestActiveLocal]);
+  }, [calculateResults, setIsTestActive, setTestResult]);
 
   // Start test
   const startTest = useCallback(() => {
     setIsTestActiveLocal(true);
     setIsTestActive(true);
+    setIsFinished(false);
     setTimeLeft(testConfig?.duration || 30);
     setTestResults(null);
     setCurrentLineIndex(0);
@@ -122,15 +130,15 @@ const TypingBox = () => {
     setWrongChars([]);
     setTotalCharactersTyped(0);
     setCorrectCharactersTyped(0);
-  }, [testConfig?.duration, setIsTestActive, setIsTestActiveLocal]);
+  }, [testConfig?.duration, setIsTestActive]);
 
-  // Timer effect
+  // Timer effect - only calls finishTest when timer hits 0
   useEffect(() => {
     if (isTestActive && timeLeft > 0) {
       timerRef.current = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
-            endTest();
+            // Don't call setState here, just return 0 and let useEffect handle it
             return 0;
           }
           return prev - 1;
@@ -149,13 +157,20 @@ const TypingBox = () => {
         timerRef.current = null;
       }
     };
-  }, [isTestActive, timeLeft, endTest]);
+  }, [isTestActive]);
+
+  // Separate effect to handle timer reaching 0
+  useEffect(() => {
+    if (isTestActive && timeLeft === 0) {
+      finishTest();
+    }
+  }, [isTestActive, timeLeft, finishTest]);
 
   // Handle keydown events
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      // Don't allow typing if test is not active or results are shown
-      if (!isTestActive || testResults) return;
+      // Don't allow typing if test is not active or finished
+      if (!isTestActive || isFinished) return;
 
       const key = e.key;
       const currentTypedChars = typedCharsRef.current;
@@ -218,7 +233,7 @@ const TypingBox = () => {
         setTotalCharactersTyped((prev) => prev + 1);
       }
     },
-    [targetWord, currentLine, currentLineIndex, lines.length, isTestActive, testResults]
+    [targetWord, currentLine, currentLineIndex, lines.length, isTestActive, isFinished]
   );
 
   useEffect(() => {
@@ -228,13 +243,13 @@ const TypingBox = () => {
 
   // Auto-start test when component mounts if we have config
   useEffect(() => {
-    if (testConfig && !isTestActive && !testResults) {
+    if (testConfig && !isTestActive && !isFinished) {
       const timer = setTimeout(() => {
         startTest();
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [testConfig, isTestActive, testResults, startTest]);
+  }, [testConfig, isTestActive, isFinished, startTest]);
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -248,23 +263,23 @@ const TypingBox = () => {
       )}
 
       {/* Results Display */}
-      {testResults && (
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 dark:bg-gray-900 dark:border-gray-800">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4 dark:text-gray-100">Test Results</h2>
+      {isFinished && testResults && (
+        <div className="bg-card rounded-xl shadow-lg p-6 border border-border">
+          <h2 className="text-2xl font-bold text-foreground mb-4">Test Results</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-blue-50 rounded-lg p-4 dark:bg-blue-900/20 dark:border-blue-800 border border-blue-200">
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
               <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{testResults.wpm}</div>
               <div className="text-sm text-gray-600 dark:text-gray-400">WPM</div>
             </div>
-            <div className="bg-green-50 rounded-lg p-4 dark:bg-green-900/20 dark:border-green-800 border border-green-200">
+            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
               <div className="text-3xl font-bold text-green-600 dark:text-green-400">{testResults.accuracy}%</div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Accuracy</div>
             </div>
-            <div className="bg-purple-50 rounded-lg p-4 dark:bg-purple-900/20 dark:border-purple-800 border border-purple-200">
+            <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
               <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">{testResults.totalCharacters}</div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Total Chars</div>
             </div>
-            <div className="bg-orange-50 rounded-lg p-4 dark:bg-orange-900/20 dark:border-orange-800 border border-orange-200">
+            <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4 border border-orange-200 dark:border-orange-800">
               <div className="text-3xl font-bold text-orange-600 dark:text-orange-400">{testResults.correctCharacters}</div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Correct Chars</div>
             </div>
@@ -287,7 +302,7 @@ const TypingBox = () => {
       )}
 
       {/* Typing Area */}
-      {(isTestActive || (!isTestActive && !testResults)) && (
+      {(isTestActive || (!isTestActive && !isFinished)) && (
         <>
           <TextDisplay
             lines={lines}
