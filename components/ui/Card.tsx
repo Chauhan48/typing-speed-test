@@ -10,8 +10,8 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
     const baseStyles = 'rounded-xl border transition-colors';
     
     const variants = {
-      default: 'bg-white border-gray-200 dark:bg-gray-900 dark:border-gray-800',
-      elevated: 'bg-white border-gray-200 shadow-lg dark:bg-gray-900 dark:border-gray-800 dark:shadow-xl',
+      default: 'border-gray-200 dark:border-gray-800',
+      elevated: 'border-gray-200 shadow-lg dark:border-gray-800 dark:shadow-xl',
     };
 
     return (

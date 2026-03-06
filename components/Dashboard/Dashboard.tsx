@@ -40,7 +40,7 @@ const Dashboard = () => {
         </div>
 
         {/* Test Configuration */}
-        <Card variant="elevated bg-card">
+        <Card variant="elevated">
           <CardHeader>
             <h2 className="text-xl font-semibold">Configure Your Test</h2>
           </CardHeader>
@@ -61,7 +61,7 @@ const Dashboard = () => {
         </Card>
 
         {/* Results Display */}
-        <Card variant="elevated bg-card">
+        <Card variant="elevated" className='bg-card'>
           <CardHeader>
             <h2 className="text-xl font-semibold">
               {testResult ? 'Most Recent Result' : 'Your Progress'}
