@@ -24,7 +24,7 @@ const Dashboard = () => {
 
   const handleConfigChange = (field: 'duration' | 'mode', value: TestDuration | TestMode) => {
     const newConfig = {
-      duration: field === 'duration' ? (value as TestDuration) : testConfig?.duration || 30,
+      duration: field === 'duration' ? (value as TestDuration) : testConfig?.duration || 15,
       mode: field === 'mode' ? (value as TestMode) : testConfig?.mode || 'Letters Only',
     };
     setTestConfig(newConfig);
@@ -46,7 +46,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             <TimeSelector 
-              selectedTime={testConfig?.duration || 30}
+              selectedTime={testConfig?.duration || 15}
               onTimeChange={(time) => handleConfigChange('duration', time as TestDuration)}
             />
             <ModeSelector 
