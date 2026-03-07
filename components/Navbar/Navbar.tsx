@@ -1,10 +1,31 @@
+'use client';
+
 import { FaKeyboard } from "react-icons/fa";
 import { IoStatsChartOutline } from "react-icons/io5";
 import { GiPlagueDoctorProfile } from "react-icons/gi";
+import { SiGnuprivacyguard } from "react-icons/si";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
+
 
 const Navbar = () => {
+
+  const [sessionIsAactive, setSessionIsActive] = useState(false);
+  const [logoutPopup, setLogoutPopup] = useState(false);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+
+      if (data.session) {
+        setSessionIsActive(true);
+      }
+    };
+
+    checkSession();
+  }, []);
   return (
     <nav className="bg-card border-b border-border px-6 py-4">
       <div className="flex items-center justify-between max-w-7xl mx-auto">
@@ -19,9 +40,26 @@ const Navbar = () => {
           <button className="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all duration-200">
             <IoStatsChartOutline />
           </button>
-          <Link href="/signup">
-            <GiPlagueDoctorProfile />
-          </Link>
+          {!sessionIsAactive ?
+            <Link href="/signup">
+              <SiGnuprivacyguard />
+            </Link>
+            :
+            <div onClick={() => setLogoutPopup(!logoutPopup)}>
+              <GiPlagueDoctorProfile />
+            </div>
+          }
+          {logoutPopup && (
+            <div className="absolute right-80 top-18 bg-card border border-border rounded-lg shadow-lg p-4">
+              <button
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  setSessionIsActive(false);
+                }}>
+                Logout
+              </button>
+            </div>
+          )}
           <ThemeToggle />
         </div>
       </div>
