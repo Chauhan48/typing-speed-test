@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
+import { useRouter } from "next/navigation";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
@@ -8,14 +10,57 @@ const Signup = () => {
   const [username, setUsername] = useState("");
   const [isLogin, setIsLogin] = useState(true);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    console.log({
-      username,
-      email,
-      password,
-    });
+    if (isLogin) {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        console.log(error.message);
+        return;
+      }
+
+      const token = data.session?.access_token;
+
+      if (token) {
+        localStorage.setItem("token", token);
+        console.log("Token stored:", token);
+      }
+
+      console.log("Logged in:", data);
+
+      router.push("/");
+    } else {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            username: username,
+          },
+        },
+      });
+
+      if (error) {
+        console.log(error.message);
+        return;
+      }
+
+      const token = data.session?.access_token;
+
+      if (token) {
+        localStorage.setItem("token", token);
+        console.log("Token stored:", token);
+      }
+
+      console.log("User created:", data);
+    }
   };
 
   return (
@@ -70,7 +115,7 @@ const Signup = () => {
 
           <button
             type="submit"
-            className="w-full bg-primary text-primary-foreground rounded-lg py-2 font-medium hover:opacity-90 transition"
+            className="w-full rounded-lg py-2 font-medium hover:opacity-90 transition"
           >
             {isLogin ? "Log In" : "Sign Up"}
           </button>
