@@ -8,6 +8,7 @@ import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
+import { toast } from "sonner";
 
 
 const Navbar = () => {
@@ -27,7 +28,13 @@ const Navbar = () => {
     checkSession();
   }, [sessionIsAactive]);
 
-  
+  const handleStatsClick = () => {
+    if (!sessionIsAactive) {
+      toast.error("You need to log in to view stats!");
+    } else {
+      // Navigate to stats page or show stats
+    }
+  }
 
   return (
     <nav className="bg-card border-b border-border px-6 py-4">
@@ -40,13 +47,8 @@ const Navbar = () => {
 
         {/* Right: Icons */}
         <div className="flex items-center space-x-4">
-          <button className="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all duration-200">
+          <button onClick={handleStatsClick}>
             <IoStatsChartOutline />
-            {!sessionIsAactive ?
-              '' :
-              <Link href='/'>
-              </Link>
-            }
           </button>
           {!sessionIsAactive ?
             <Link href="/signup">
