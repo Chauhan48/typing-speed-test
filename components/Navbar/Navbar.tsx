@@ -9,12 +9,15 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 
 const Navbar = () => {
 
   const [sessionIsAactive, setSessionIsActive] = useState(false);
   const [logoutPopup, setLogoutPopup] = useState(false);
+
+  const router = useRouter();
 
   useEffect(() => {
     const checkSession = async () => {
@@ -32,7 +35,7 @@ const Navbar = () => {
     if (!sessionIsAactive) {
       toast.error("You need to log in to view stats!");
     } else {
-      // Navigate to stats page or show stats
+      router.push("/stats");
     }
   }
 
