@@ -25,7 +25,10 @@ const Navbar = () => {
     };
 
     checkSession();
-  }, []);
+  }, [sessionIsAactive]);
+
+  
+
   return (
     <nav className="bg-card border-b border-border px-6 py-4">
       <div className="flex items-center justify-between max-w-7xl mx-auto">
@@ -39,6 +42,11 @@ const Navbar = () => {
         <div className="flex items-center space-x-4">
           <button className="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all duration-200">
             <IoStatsChartOutline />
+            {!sessionIsAactive ?
+              '' :
+              <Link href='/'>
+              </Link>
+            }
           </button>
           {!sessionIsAactive ?
             <Link href="/signup">
