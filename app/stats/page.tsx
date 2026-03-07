@@ -1,8 +1,11 @@
+import UserStats from "@/components/Statistics/UserStats"
 
 const page = () => {
+
+
   return (
     <div>
-        Stats
+      <UserStats />
     </div>
   )
 }
