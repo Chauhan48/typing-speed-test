@@ -2,6 +2,7 @@ import { FaKeyboard } from "react-icons/fa";
 import { IoStatsChartOutline } from "react-icons/io5";
 import { GiPlagueDoctorProfile } from "react-icons/gi";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import Link from "next/link";
 
 const Navbar = () => {
   return (
@@ -18,9 +19,9 @@ const Navbar = () => {
           <button className="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all duration-200">
             <IoStatsChartOutline />
           </button>
-          <button className="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all duration-200">
+          <Link href="/signup">
             <GiPlagueDoctorProfile />
-          </button>
+          </Link>
           <ThemeToggle />
         </div>
       </div>
