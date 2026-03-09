@@ -21,9 +21,11 @@ const Navbar = () => {
   const router = useRouter();
 
   useEffect(() => {
-    checkSession().then((isActive) => {
-      setSessionIsActive(isActive);
-    });
+    checkSession().then(() => {
+      setSessionIsActive(true);
+    }).catch(() => {
+      setSessionIsActive(false);
+    })
   }, []);
 
   const handleStatsClick = () => {
