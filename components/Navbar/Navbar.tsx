@@ -33,7 +33,7 @@ const Navbar = () => {
 
   const handleStatsClick = () => {
     if (!sessionIsAactive) {
-      toast.error("You need to log in to view stats!");
+      toast.info("You need to log in to view stats!");
     } else {
       router.push("/stats");
     }
