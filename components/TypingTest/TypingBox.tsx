@@ -17,7 +17,7 @@ interface TestResults {
 const TypingBox = () => {
   const router = useRouter();
   const { testConfig, setTestResult, setIsTestActive } = useTestStore();
-  
+
   const fullText = "Lorem ipsum dolor sit amet consectetur adipisicing elit. Ad consequatur a numquam eveniet totam quisquam illum officiis culpa, nisi fuga eos magnam nulla debitis! Atque cupiditate ut ipsa cum explicabo vitae optio sit beatae aut enim dolore nobis nemo quas doloremque, quos assumenda ducimus sequi ea harum? Aut sapiente voluptas dicta, fuga aperiam vel eligendi rem eaque, facere esse nam. Tempore eveniet incidunt illum? Beatae error autem aliquam maiores, ut a qui optio fuga facilis et numquam commodi, possimus voluptates officia asperiores ab, magnam rem tempora eligendi esse in minus! Lorem ipsum dolor sit amet consectetur adipisicing elit Illo explicabo dolorem quisquam iure dolor voluptas aperiam porro nostrum similique distinctio eum pariatur veniam quidem provident minima Facere blanditiis nobis ex modi sequi sint ab";
 
   const words = fullText.split(/\s+/).filter(Boolean).map(word => word.replace(/[^\w\s]/g, ''));
@@ -57,11 +57,11 @@ const TypingBox = () => {
   useEffect(() => {
     typedCharsRef.current = typedChars;
   }, [typedChars]);
-  
+
   useEffect(() => {
     totalCharsRef.current = totalCharactersTyped;
   }, [totalCharactersTyped]);
-  
+
   useEffect(() => {
     correctCharsRef.current = correctCharactersTyped;
   }, [correctCharactersTyped]);
@@ -72,10 +72,10 @@ const TypingBox = () => {
   // Calculate test results
   const calculateResults = useCallback((): TestResults => {
     const testDurationInMinutes = (testConfig?.duration || 30) / 60;
-    const wpm = totalCharactersTyped > 0 
-      ? (correctCharactersTyped / 5) / testDurationInMinutes 
+    const wpm = totalCharactersTyped > 0
+      ? (correctCharactersTyped / 5) / testDurationInMinutes
       : 0;
-    
+
     const accuracy = totalCharactersTyped > 0
       ? (correctCharactersTyped / totalCharactersTyped) * 100
       : 0;
@@ -96,16 +96,16 @@ const TypingBox = () => {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
-    
+
     // Calculate results
     const results = calculateResults();
-    
+
     // Set local states
     setIsTestActiveLocal(false);
     setIsTestActive(false);
     setIsFinished(true);
     setTestResults(results);
-    
+
     // Save to Zustand store
     setTestResult({
       wpm: results.wpm,
@@ -222,12 +222,9 @@ const TypingBox = () => {
       if (targetWord.toLowerCase().startsWith(proposed)) {
         setTypedChars(proposed);
         setWrongChars([]);
-        
-        // Update metrics
+
         setTotalCharactersTyped((prev) => prev + 1);
-        if (proposed.length === targetWord.length) {
-          setCorrectCharactersTyped((prev) => prev + 1);
-        }
+        setCorrectCharactersTyped((prev) => prev + 1);
       } else {
         setWrongChars([lowerKey]);
         setTotalCharactersTyped((prev) => prev + 1);
