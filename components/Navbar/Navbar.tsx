@@ -10,7 +10,6 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import checkSession from "@/utils/checkSession";
 
 
 const Navbar = () => {
@@ -21,12 +20,16 @@ const Navbar = () => {
   const router = useRouter();
 
   useEffect(() => {
-    checkSession().then(() => {
-      setSessionIsActive(true);
-    }).catch(() => {
-      setSessionIsActive(false);
-    })
-  }, []);
+    async function checkSession() {
+      const { data } = await supabase.auth.getSession();
+
+      if (data.session) {
+        setSessionIsActive(true);
+      }
+
+    }
+    checkSession()
+  }, [setSessionIsActive]);
 
   const handleStatsClick = () => {
     if (!sessionIsAactive) {
