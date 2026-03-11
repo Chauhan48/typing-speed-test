@@ -101,6 +101,105 @@ export interface TypingResultRow {
   created_at: string;
 }
 
+export interface TypingFilters {
+  dateRange?: {
+    from?: string;
+    to?: string;
+  };
+  minWpm?: number;
+  testDuration?: number;
+}
+
+export interface TypingResultsResponse {
+  data: TypingResultRow[];
+  count: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+/**
+ * Gets typing results for the current authenticated user with pagination and filters
+ * @param page - Page number (default: 1)
+ * @param pageSize - Results per page (default: 10)
+ * @param filters - Optional filters
+ * @returns Promise<{ success: boolean; data?: TypingResultsResponse; error?: string }>
+ */
+export async function getUserTypingResultsWithPagination(
+  page: number = 1,
+  pageSize: number = 10,
+  filters?: TypingFilters
+): Promise<{ success: boolean; data?: TypingResultsResponse; error?: string }> {
+  try {
+    if (!supabase) {
+      return { success: false, error: 'Supabase not available' };
+    }
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      return { success: false, error: 'User not authenticated' };
+    }
+
+    // Build the query
+    let query = supabase
+      .from('typing_results')
+      .select('*', { count: 'exact' })
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+
+    // Apply filters
+    if (filters) {
+      // Date range filter
+      if (filters.dateRange?.from) {
+        query = query.gte('created_at', filters.dateRange.from);
+      }
+      if (filters.dateRange?.to) {
+        query = query.lte('created_at', filters.dateRange.to);
+      }
+      
+      // Minimum WPM filter
+      if (filters.minWpm) {
+        query = query.gte('wpm', filters.minWpm);
+      }
+      
+      // Test duration filter
+      if (filters.testDuration) {
+        query = query.eq('test_duration', filters.testDuration);
+      }
+    }
+
+    // Apply pagination
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+    query = query.range(from, to);
+
+    const { data, error, count } = await query;
+
+    if (error) {
+      console.error('Error fetching typing results:', error);
+      return { success: false, error: 'Failed to fetch results' };
+    }
+
+    const totalPages = Math.ceil((count || 0) / pageSize);
+
+    return { 
+      success: true, 
+      data: {
+        data: data as TypingResultRow[] || [],
+        count: count || 0,
+        page,
+        pageSize,
+        totalPages
+      }
+    };
+
+  } catch (error) {
+    console.error('Unexpected error fetching typing results:', error);
+    return { success: false, error: 'Unexpected error occurred' };
+  }
+}
+
 /**
  * Gets all typing results for the current authenticated user
  * @returns Promise<{ success: boolean; data?: TypingResultRow[]; error?: string }>
