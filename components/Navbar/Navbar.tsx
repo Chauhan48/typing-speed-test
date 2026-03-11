@@ -21,6 +21,8 @@ const Navbar = () => {
 
   useEffect(() => {
     async function checkSession() {
+      if (!supabase) return;
+      
       const { data } = await supabase.auth.getSession();
 
       if (data.session) {
@@ -66,6 +68,7 @@ const Navbar = () => {
             <div className="absolute right-80 top-18 bg-card border border-border rounded-lg shadow-lg p-4">
               <button
                 onClick={async () => {
+                  if (!supabase) return;
                   await supabase.auth.signOut();
                   setSessionIsActive(false);
                 }}>

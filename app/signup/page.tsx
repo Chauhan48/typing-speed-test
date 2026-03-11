@@ -15,6 +15,11 @@ const Signup = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!supabase) {
+      console.log("Supabase not available");
+      return;
+    }
+
     if (isLogin) {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,

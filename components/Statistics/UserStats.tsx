@@ -13,6 +13,12 @@ const UserStats = () => {
 
     useEffect(() => {
         const checkSession = async () => {
+            if (!supabase) {
+                toast.error("Authentication service not available");
+                router.replace("/signup");
+                return;
+            }
+            
             const { data } = await supabase.auth.getSession();
 
             if (data.session) {
