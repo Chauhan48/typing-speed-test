@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import Keyboard from './Keyboard/Keyboard';
 import TextDisplay from './TextDisplay';
 import { useTestStore } from '@/stores/testStore';
+import { storeTypingResult, TypingResult } from '@/lib/typingResults';
+import { toast } from 'sonner';
 
 interface TestResults {
   wpm: number;
@@ -90,7 +92,7 @@ const TypingBox = () => {
   }, [totalCharactersTyped, correctCharactersTyped, testConfig?.duration]);
 
   // Finish test - called when timer hits 0
-  const finishTest = useCallback(() => {
+  const finishTest = useCallback(async () => {
     // Stop timer
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -115,6 +117,24 @@ const TypingBox = () => {
       testDuration: results.testDuration,
       completedAt: new Date().toISOString(),
     });
+
+    // Store in Supabase for authenticated users
+    const typingResult: TypingResult = {
+      wpm: results.wpm,
+      accuracy: results.accuracy,
+      characters: results.totalCharacters,
+      errors: results.totalCharacters - results.correctCharacters, // Calculate errors
+      testDuration: results.testDuration,
+    };
+
+    const { success, error } = await storeTypingResult(typingResult);
+    
+    if (success) {
+      toast.success('Typing result saved to your profile!');
+    } else {
+      console.error('Failed to save typing result:', error);
+      toast.error('Failed to save typing result');
+    }
   }, [calculateResults, setIsTestActive, setTestResult]);
 
   // Start test
@@ -157,12 +177,15 @@ const TypingBox = () => {
         timerRef.current = null;
       }
     };
-  }, [isTestActive]);
+  }, [isTestActive, timeLeft]);
 
   // Separate effect to handle timer reaching 0
   useEffect(() => {
     if (isTestActive && timeLeft === 0) {
-      finishTest();
+      const timer = setTimeout(() => {
+        finishTest();
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [isTestActive, timeLeft, finishTest]);
 
