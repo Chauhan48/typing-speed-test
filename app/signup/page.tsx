@@ -35,10 +35,7 @@ const Signup = () => {
 
       if (token) {
         localStorage.setItem("token", token);
-        console.log("Token stored:", token);
       }
-
-      console.log("Logged in:", data);
 
       router.push("/");
     } else {
@@ -61,10 +58,7 @@ const Signup = () => {
 
       if (token) {
         localStorage.setItem("token", token);
-        console.log("Token stored:", token);
       }
-
-      console.log("User created:", data);
     }
   };
 
